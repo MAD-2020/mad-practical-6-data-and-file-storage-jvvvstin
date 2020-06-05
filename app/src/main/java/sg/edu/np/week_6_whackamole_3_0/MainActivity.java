@@ -2,6 +2,7 @@ package sg.edu.np.week_6_whackamole_3_0;
 
 import androidx.appcompat.app.AppCompatActivity;
 
+import android.accounts.Account;
 import android.content.Intent;
 import android.os.Bundle;
 import android.util.Log;
@@ -12,7 +13,7 @@ import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.Toast;
 
-public class MainActivity extends AppCompatActivity {
+public class MainActivity extends AppCompatActivity implements View.OnClickListener {
 
     /*
         1. This is the main page for user to log in
@@ -23,6 +24,11 @@ public class MainActivity extends AppCompatActivity {
      */
     private static final String FILENAME = "MainActivity.java";
     private static final String TAG = "Whack-A-Mole3.0!";
+    EditText userNameEditText;
+    EditText pwEditText;
+    Button loginBtn;
+    TextView newUserTextView;
+    MyDBHandler handler;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -33,18 +39,17 @@ public class MainActivity extends AppCompatActivity {
             This method creates the necessary login inputs and the new user creation ontouch.
             It also does the checks on button selected.
             Log.v(TAG, FILENAME + ": Create new user!");
-            Log.v(TAG, FILENAME + ": Logging in with: " + etUsername.getText().toString() + ": " + etPassword.getText().toString());
+            Log.v(TAG, FILENAME + ": Logging in with: " + getUsername.getText().toString() + ": " + getPassword.getText().toString());
             Log.v(TAG, FILENAME + ": Valid User! Logging in");
             Log.v(TAG, FILENAME + ": Invalid user!");
 
         */
+        userNameEditText = (EditText) findViewById(R.id.userNameEditText);
+        pwEditText = (EditText) findViewById(R.id.pwEditText);
+        loginBtn = (Button) findViewById(R.id.loginBtn);
+        newUserTextView = (TextView) findViewById(R.id.newUserTextView);
+        handler = new MyDBHandler(this, "WhackAMole.db", null, 1);
 
-
-    }
-
-    protected void onStop(){
-        super.onStop();
-        finish();
     }
 
     public boolean isValidUser(String userName, String password){
@@ -54,7 +59,53 @@ public class MainActivity extends AppCompatActivity {
             Log.v(TAG, FILENAME + ": Running Checks..." + dbData.getMyUserName() + ": " + dbData.getMyPassword() +" <--> "+ userName + " " + password);
             You may choose to use this or modify to suit your design.
          */
+        boolean result;
+        UserData dbData = handler.findUser(userName);
+        if (dbData != null) {
+            Log.v(TAG, FILENAME + ": Running Checks..." + dbData.getMyUserName() + ": " + dbData.getMyPassword() +" <--> "+ userName + " " + password);
+            if (dbData.getMyUserName().equals(userName) && dbData.getMyPassword().equals(password)) {
 
+                result = true;
+            }
+            else {
+                result = false;
+            }
+        }
+        else {
+            result = false;
+        }
+
+        return result;
+    }
+
+    public void onClick(View v) {
+        Log.v(TAG, FILENAME + ": Create new user!");
+        Intent in = new Intent(MainActivity.this, Main2Activity.class);
+        startActivity(in);
+    }
+
+    //when Login button is clicked
+    public void OnClick2(View v) {
+        Log.v(TAG, FILENAME + ": Logging in with: " + userNameEditText.getText().toString() + ": " + pwEditText.getText().toString());
+        String inputUsername = userNameEditText.getText().toString();
+        String inputPw = pwEditText.getText().toString();
+        boolean result = isValidUser(inputUsername, inputPw);
+
+        if (result) {
+            Log.v(TAG, FILENAME + ": Valid User! Logging in");
+
+            Intent in = new Intent(MainActivity.this, Main3Activity.class);
+            in.putExtra("Username", inputUsername);
+            startActivity(in);
+        }
+        else {
+            makeToast("Invalid Username or Password");
+            Log.v(TAG, FILENAME + ": Invalid user!");
+        }
+    }
+
+    public void makeToast(String message) {
+        Toast.makeText(this, message, Toast.LENGTH_SHORT).show();
     }
 
 }
